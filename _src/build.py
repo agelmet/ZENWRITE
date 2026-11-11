@@ -2,6 +2,7 @@
 """ZenWrite site generator. python3 build.py  → ../site/"""
 import math, os, re, json, shutil, subprocess, html
 from data import S, T, GROUPS, DOMAIN, BRAND, EMAIL, PHONE, VIBER, WHATSAPP
+import sketch as SK
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, '..', 'site'))
@@ -67,6 +68,17 @@ ICONS = {
 def icon(k, cls='ic'):
     paths = ''.join(f'<path d="{p.strip() if p.strip().startswith("M") else "M"+p.strip()}" pathLength="1"/>' for p in re.split(r'\s(?=M)', ICONS[k]))
     return f'<svg class="{cls}" viewBox="0 0 24 24" aria-hidden="true">{paths}</svg>'
+
+def ricon(k, seed=0, cls='ri'):
+    return f'<svg class="{cls} draw" viewBox="0 0 48 48" aria-hidden="true">{SK.rough_icon(ICONS[k], 500 + seed).render()}</svg>'
+def dd(kind, cls, seed=0): return SK.doodle_svg(kind, cls, seed)
+def scaled(art, speed, base=0.0):
+    for i, it in enumerate(art.items):
+        art.items[i] = it[:4] + (it[4] * speed,) + it[5:]
+    return art.render(base)
+HERO_SCENE = scaled(SK.hero_scene(), .42, .3)
+HERO_DOOD = scaled(SK.hero_doodles(), .45, 2.2)
+CTA_PLANE = SK.cta_plane().render()
 
 FLAG = {
  'el': '<svg viewBox="0 0 27 18" preserveAspectRatio="xMidYMid slice" style="display:block;width:100%;height:100%"><rect width="27" height="18" fill="#0D5EAF"/><path d="M0 3h27M0 7h27M0 11h27M0 15h27" stroke="#fff" stroke-width="2"/><rect width="10" height="10" fill="#0D5EAF"/><path d="M5 0v10M0 5h10" stroke="#fff" stroke-width="2"/></svg>',
@@ -235,12 +247,13 @@ def home(L):
         rr = []
         for s in [s for s in S if s['group'] == g]:
             n += 1
-            rr.append(f'<li data-rv><a class="sv" href="{rel(here, spath(s, L))}"><span class="sv-n">{n:02d}</span>{icon(s["icon"], "ic sv-i")}'
+            rr.append(f'<li data-rv><a class="sv" href="{rel(here, spath(s, L))}"><span class="sv-n">{n:02d}</span>{ricon(s["icon"], n, "ri sv-i")}'
                       f'<span class="sv-t"><span class="sv-h">{e(s[L]["name"])}</span><span class="sv-p">{e(s[L]["short"])}</span></span>'
                       f'<span class="sv-a" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a></li>')
         rows.append(f'<div class="sv-g"><p class="sv-gh" data-rv>{e(gt[L])}</p><ul class="sv-l">{"".join(rr)}</ul></div>')
-    jr = ''.join(f'<li class="jr-s" data-rv><span class="jr-d" aria-hidden="true"></span><div class="jr-c"><span class="jr-n">{i+1:02d}</span><h3>{e(a)}</h3><p>{e(b)}</p></div></li>' for i, (a, b) in enumerate(t['jr']))
-    pr = ''.join(f'<li class="pr-c" data-rv style="--i:{i}"><span class="pr-n">{i+1}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['pr']))
+    JI = ['compass', 'doc', 'book', 'lens', 'chart', 'nib', 'screen']
+    jr = ''.join(f'<li class="jr-s" data-rv><span class="jr-d" aria-hidden="true"></span><div class="jr-c sk">{ricon(JI[i], i, "ri jr-i")}<span class="jr-n">{i+1:02d}</span><h3>{e(a)}</h3><p>{e(b)}</p></div></li>' for i, (a, b) in enumerate(t['jr']))
+    pr = ''.join(f'<li class="pr-c sk ch" data-rv style="--i:{i}"><span class="pr-n">{i+1}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['pr']))
     ph = ''.join(f'<li data-rv style="--i:{i}"><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['ph']))
     facts = ''.join(f'<div><dt>{e(a)}</dt><dd>{(f"<a href=mailto:{EMAIL}>{EMAIL}</a>" if b == "email" else e(b))}</dd></div>' for a, b in t['facts'])
     fields = ''.join(f'<span>{e(f.strip())}</span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#zw"/></svg>' for f in t['fields'].split('·'))
@@ -257,33 +270,30 @@ def home(L):
 <p class="hero-p">{e(t["hero_p"])}</p>
 <div class="hero-cta"><a class="btn" href="#prosfora">{e(t["cta_quote"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="lnk" href="#ypiresies">{e(t["cta_services"])}</a></div>
 <ul class="pills">{chips(t["pills"])}</ul></div>
-<div class="hero-v" aria-hidden="true"><div class="hv-p" data-d="10"><svg viewBox="0 0 100 100" class="hv-e"><defs><mask id="hm"><path d="{ENSO_G}" pathLength="1" class="hv-g"/></mask></defs><use href="#eo" mask="url(#hm)" class="hv-ink"/>{"".join(f'<path d="{s}" mask="url(#hm)" class="hv-st"/>' for s in ENSO_ST)}</svg></div>
-<div class="hv-p" data-d="22"><div class="ms"><p class="ms-k">{e(t["ms_title"])}</p><span class="ms-l" style="--w:92%"></span><span class="ms-l" style="--w:84%"></span><span class="ms-l" style="--w:96%"></span><span class="ms-l" style="--w:58%"></span>
-<div class="ms-ch"><i style="--h:42%"></i><i style="--h:68%"></i><i style="--h:55%"></i><i style="--h:86%"></i><i style="--h:74%"></i></div>
-<span class="ms-l" style="--w:88%"></span><span class="ms-l" style="--w:70%"></span><span class="ms-c">{e(t["ms_cite"])}</span></div></div>
-<div class="hv-p" data-d="34"><svg class="hv-nib" viewBox="0 0 100 100"><path d="{NIB}"/><path d="M50 49v16" class="sl"/><circle cx="50" cy="47.5" r="2.1" class="sl-c"/></svg></div>
-<div class="hv-p" data-d="16"><span class="seal">Zen<br>Write</span></div>
-<span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>
+<div class="hero-v" aria-hidden="true"><div class="hv-p hv-en" data-d="8"><svg viewBox="0 0 100 100" class="hv-e"><defs><mask id="hm"><path d="{ENSO_G}" pathLength="1" class="hv-g"/></mask></defs><use href="#eo" mask="url(#hm)" class="hv-ink"/>{"".join(f'<path d="{s}" mask="url(#hm)" class="hv-st"/>' for s in ENSO_ST)}</svg></div>
+<div class="hv-p" data-d="16"><svg viewBox="0 0 640 560" class="scene">{HERO_SCENE}</svg></div>
+<div class="hv-p" data-d="30"><svg viewBox="0 0 640 560" class="scene dood">{HERO_DOOD}</svg><span class="note">{e(t["note"])}</span></div>
+</div>
 </div><a class="scue" href="#glance" aria-label="{e(t["about_k"])}"><span></span></a></section>
 
-<section class="glance" id="glance"><div class="wrap gl-in"><p class="kicker" data-rv>{e(t["about_k"])}</p><p class="gl-p" data-rv>{e(t["about_p"])}</p></div></section>
+<section class="glance" id="glance">{dd("star","g1",1)}{dd("swirl","g2",2)}<div class="wrap gl-in"><p class="kicker" data-rv>{e(t["about_k"])}</p><p class="gl-p" data-rv>{e(t["about_p"])}</p></div></section>
 
 <div class="tick" aria-hidden="true"><div class="tick-t"><div class="tick-i">{fields}{fields}</div></div></div>
 
-<section class="svc" id="ypiresies"><div class="wrap svc-in"><div class="svc-h"><p class="kicker" data-rv>{e(t["svc_k"])}</p><h2 data-fx="mask">{e(t["svc_h"])}</h2><p class="lead" data-rv>{e(t["svc_p"])}</p></div>
+<section class="svc" id="ypiresies"><div class="wrap svc-in"><div class="svc-h"><p class="kicker" data-rv>{e(t["svc_k"])}</p><h2 data-fx="mask">{e(t["svc_h"])}</h2><p class="lead" data-rv>{e(t["svc_p"])}</p>{dd("arrow","s1",3)}{dd("bell","s2",4)}</div>
 <div class="svc-b">{"".join(rows)}</div></div></section>
 
-<section class="jr" id="dromos"><div class="wrap"><div class="sec-h c"><p class="kicker" data-rv>{e(t["jr_k"])}</p><h2 data-fx="cascade">{e(t["jr_h"])}</h2><p class="lead" data-rv>{e(t["jr_p"])}</p></div>
+<section class="jr" id="dromos">{dd("leaf","j1",5)}{dd("loop","j2",6)}<div class="wrap"><div class="sec-h c"><p class="kicker" data-rv>{e(t["jr_k"])}</p><h2 data-fx="cascade">{e(t["jr_h"])}</h2><p class="lead" data-rv>{e(t["jr_p"])}</p></div>
 <div class="jr-w"><svg class="jr-svg" aria-hidden="true"><path class="jr-bg"/><path class="jr-p"/></svg><span class="jr-walk" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#zw"/></svg></span><ol class="jr-l">{jr}</ol></div></div></section>
 
-<section class="pr dark" id="diadikasia"><div class="wrap"><div class="sec-h"><p class="kicker" data-rv>{e(t["pr_k"])}</p><h2 data-fx="light">{e(t["pr_h"])}</h2></div><ol class="pr-l">{pr}</ol></div></section>
+<section class="pr dark" id="diadikasia">{dd("star","p1",7)}{dd("asterisk","p2",8)}<div class="wrap"><div class="sec-h"><p class="kicker" data-rv>{e(t["pr_k"])}</p><h2 data-fx="light">{e(t["pr_h"])}</h2></div><ol class="pr-l">{pr}</ol></div></section>
 
-<section class="ph" id="filosofia"><div class="wrap"><p class="kicker" data-rv>{e(t["ph_k"])}</p><p class="ph-q" data-scrub>{e(t["ph_q"])}</p><ul class="ph-l">{ph}</ul></div></section>
+<section class="ph" id="filosofia">{dd("check","f1",9)}{dd("leaf","f2",10)}<div class="wrap"><p class="kicker" data-rv>{e(t["ph_k"])}</p><p class="ph-q" data-scrub>{e(t["ph_q"])}</p><ul class="ph-l">{ph}</ul></div></section>
 
-<section class="tl" id="ergaleia"><div class="wrap sec-h c"><p class="kicker" data-rv>{e(t["tl_k"])}</p><h2 data-fx="brush">{e(t["tl_h"])}</h2></div>
+<section class="tl" id="ergaleia">{dd("swirl","t1",11)}{dd("star","t2",12)}<div class="wrap sec-h c"><p class="kicker" data-rv>{e(t["tl_k"])}</p><h2 data-fx="brush">{e(t["tl_h"])}</h2></div>
 <div class="mq" aria-label="{e(t["tl_k"])}"><ul class="mq-t">{tl1}{tl1}</ul><ul class="mq-t r">{tl2}{tl2}</ul></div></section>
 
-<section class="qt" id="prosfora"><div class="wrap qt-in"><div class="qt-f"><p class="kicker" data-rv>{e(t["q_k"])}</p><h2 data-fx="mask">{e(t["q_h"])}</h2><p class="lead" data-rv>{e(t["q_p"])}</p>
+<section class="qt" id="prosfora">{dd("asterisk","qa1",13)}<div class="wrap qt-in"><div class="qt-f"><p class="kicker" data-rv>{e(t["q_k"])}</p><h2 data-fx="mask">{e(t["q_h"])}</h2><p class="lead" data-rv>{e(t["q_p"])}</p>
 <form class="qf" id="qf" novalidate>
 <fieldset class="qg"><legend>{e(t["q_type"])}</legend><div class="qcs">{qtypes}</div></fieldset>
 <div class="q2"><label class="qi"><span>{e(t["q_level"])}</span><select name="lv">{opt(t["q_levels"])}</select></label>
@@ -295,11 +305,11 @@ def home(L):
 <label class="qi"><span>{e(t["q_notes"])}</span><textarea name="nt" rows="3" placeholder="{e(t["q_notes_ph"])}"></textarea></label>
 <label class="qi"><span>{e(t["q_name"])}</span><input name="nm" type="text" placeholder="{e(t["q_name_ph"])}" autocomplete="name"></label>
 </form></div>
-<div class="qt-l"><div class="letter" id="letter" {msg} data-to="{EMAIL}" data-sub="{e(t["q_k"])}"><p class="lt-k">{e(t["q_letter"])}</p><div class="lt-b" id="ltb" aria-live="polite"></div><span class="lt-seal" aria-hidden="true">ZW</span></div>
+<div class="qt-l">{dd("arrow","qa2",14)}<div class="letter sk" id="letter" {msg} data-to="{EMAIL}" data-sub="{e(t["q_k"])}"><p class="lt-k">{e(t["q_letter"])}</p><div class="lt-b" id="ltb" aria-live="polite"></div><span class="lt-seal" aria-hidden="true">ZW</span></div>
 <div class="lt-a"><a class="btn" id="qsend" href="mailto:{EMAIL}">{e(t["q_send"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg></a><button class="lnk" type="button" id="qcopy">{e(t["q_copy"])}</button></div>
 <p class="lt-n">{e(t["q_privacy"])}</p></div></div></section>
 
-<section class="fqs" id="faq"><div class="wrap fqs-in"><div class="fqs-h"><p class="kicker" data-rv>{e(t["faq_k"])}</p><h2 data-fx="cascade">{e(t["faq_h"])}</h2>
+<section class="fqs" id="faq">{dd("loop","a1",15)}<div class="wrap fqs-in"><div class="fqs-h"><p class="kicker" data-rv>{e(t["faq_k"])}</p><h2 data-fx="cascade">{e(t["faq_h"])}</h2>
 <dl class="facts" data-rv>{facts}</dl></div>{faq_html(t["faq"])}</div></section>
 
 {cta(L, here, t["ct_k"], t["ct_h"], t["ct_p"])}'''
@@ -309,7 +319,7 @@ def home(L):
 def cta(L, here, k, h, p, q=''):
     t = T[L]; hp = rel(here, homepath(L))
     tgt = '#prosfora' if here == homepath(L) else f'{hp}?t={q}#prosfora'
-    return f'''<section class="ct dark" id="epikoinonia"><div class="ct-e" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><mask id="cm"><path d="{ENSO_G}" pathLength="1" class="ct-g"/></mask></defs><use href="#eo" mask="url(#cm)"/></svg></div>
+    return f'''<section class="ct dark" id="epikoinonia"><div class="ct-e" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><mask id="cm"><path d="{ENSO_G}" pathLength="1" class="ct-g"/></mask></defs><use href="#eo" mask="url(#cm)"/></svg></div><svg class="ct-pl draw" viewBox="0 0 900 240" aria-hidden="true">{CTA_PLANE}</svg>
 <div class="wrap ct-in"><p class="kicker" data-rv>{e(k)}</p><h2 data-fx="mask">{e(h)}</h2><p class="lead" data-rv>{e(p)}</p>
 <a class="ct-m" href="mailto:{EMAIL}" data-rv>{EMAIL}</a>
 <div class="ct-b" data-rv><a class="btn btn-l" href="{tgt}">{e(t["nav_quote"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div></div></section>'''
@@ -317,25 +327,25 @@ def cta(L, here, k, h, p, q=''):
 # ---------------------------------------------------------------- service page
 def service(s, L):
     t = T[L]; c = s[L]; here = spath(s, L); alt = spath(s, t['other']); hp = rel(here, homepath(L))
-    incl = ''.join(f'<li class="in-c" data-rv style="--i:{i}"><span class="in-n">{i+1:02d}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(c['incl']))
+    incl = ''.join(f'<li class="in-c sk" data-rv style="--i:{i}"><span class="in-n">{i+1:02d}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(c['incl']))
     same = [x for x in S if x['group'] == s['group'] and x is not s]
     others = [x for x in S if x['group'] != s['group']]
     relx = (same + others)[:3]
-    rl = ''.join(f'<li data-rv style="--i:{i}"><a class="rl" href="{rel(here, spath(x, L))}">{icon(x["icon"])}<span class="rl-h">{e(x[L]["name"])}</span><span class="rl-p">{e(x[L]["short"])}</span><span class="rl-a" aria-hidden="true">→</span></a></li>' for i, x in enumerate(relx))
-    pr = ''.join(f'<li class="pr-c" data-rv style="--i:{i}"><span class="pr-n">{i+1}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['pr']))
+    rl = ''.join(f'<li data-rv style="--i:{i}"><a class="rl sk" href="{rel(here, spath(x, L))}">{ricon(x["icon"], i+20)}<span class="rl-h">{e(x[L]["name"])}</span><span class="rl-p">{e(x[L]["short"])}</span><span class="rl-a" aria-hidden="true">→</span></a></li>' for i, x in enumerate(relx))
+    pr = ''.join(f'<li class="pr-c sk ch" data-rv style="--i:{i}"><span class="pr-n">{i+1}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['pr']))
     bc_name = t['nav_services']
     body = f'''
 <section class="sh" id="hero"><div class="hero-bg" aria-hidden="true"><i class="w1"></i><i class="w2"></i></div><div class="wrap sh-in">
 <div class="sh-t"><nav class="bc" aria-label="breadcrumb"><a href="{hp}">{e(t["home_lbl"])}</a><span aria-hidden="true">/</span><a href="{hp}#ypiresies">{e(bc_name)}</a><span aria-hidden="true">/</span><span aria-current="page">{e(c["name"])}</span></nav>
 <p class="eyebrow">{e(c["kicker"])}</p><h1 class="h1 h1-s">{e(c["h1"])}</h1><p class="hero-p">{e(c["lead"])}</p>
 <div class="hero-cta"><a class="btn" href="{hp}?t={s["q"]}#prosfora">{e(t["cta_quote"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="lnk" href="#periexei">{e(t["sp_incl"])}</a></div></div>
-<div class="sh-v" aria-hidden="true"><svg viewBox="0 0 100 100" class="sh-e"><defs><mask id="sm"><path d="{ENSO_G}" pathLength="1" class="hv-g"/></mask></defs><use href="#eo" mask="url(#sm)" class="hv-ink"/></svg>{icon(s["icon"], "ic sh-i")}<span class="seal">Zen<br>Write</span></div>
+<div class="sh-v" aria-hidden="true"><svg viewBox="0 0 100 100" class="sh-e"><defs><mask id="sm"><path d="{ENSO_G}" pathLength="1" class="hv-g"/></mask></defs><use href="#eo" mask="url(#sm)" class="hv-ink"/></svg><svg viewBox="0 0 400 400" class="sh-art">{scaled(SK.service_art(ICONS[s["icon"]], 700 + S.index(s) * 10), .5, .5)}</svg></div>
 </div></section>
 <section class="inc" id="periexei"><div class="wrap"><div class="sec-h"><p class="kicker" data-rv>{e(t["sp_incl"])}</p><h2 data-fx="mask">{e(c["name"])}: {e(t["sp_incl"].lower())}</h2></div><ol class="in-l">{incl}</ol></div></section>
 <section class="who"><div class="wrap who-in"><div><p class="kicker" data-rv>{e(t["sp_who"])}</p><p class="who-p" data-rv>{e(c["who"])}</p></div>
 <div><p class="kicker" data-rv>{e(t["sp_tools"])}</p><ul class="tg" data-rv>{chips(s["tools"])}</ul></div></div></section>
-<section class="pr dark" id="diadikasia"><div class="wrap"><div class="sec-h"><p class="kicker" data-rv>{e(t["pr_k"])}</p><h2 data-fx="light">{e(t["pr_h"])}</h2></div><ol class="pr-l">{pr}</ol></div></section>
-<section class="fqs" id="faq"><div class="wrap fqs-in"><div class="fqs-h"><p class="kicker" data-rv>{e(t["sp_faq"])}</p><h2 data-fx="cascade">{e(c["name"])}: {e(t["sp_faq"].lower())}</h2></div>{faq_html(c["faq"] + [t["faq"][2]])}</div></section>
+<section class="pr dark" id="diadikasia">{dd("star","p1",7)}{dd("asterisk","p2",8)}<div class="wrap"><div class="sec-h"><p class="kicker" data-rv>{e(t["pr_k"])}</p><h2 data-fx="light">{e(t["pr_h"])}</h2></div><ol class="pr-l">{pr}</ol></div></section>
+<section class="fqs" id="faq">{dd("loop","a1",15)}<div class="wrap fqs-in"><div class="fqs-h"><p class="kicker" data-rv>{e(t["sp_faq"])}</p><h2 data-fx="cascade">{e(c["name"])}: {e(t["sp_faq"].lower())}</h2></div>{faq_html(c["faq"] + [t["faq"][2]])}</div></section>
 <section class="rel"><div class="wrap"><p class="kicker" data-rv>{e(t["sp_rel"])}</p><ul class="rl-l">{rl}</ul></div></section>
 {cta(L, here, t["ct_k"], t["sp_cta_h"], t["sp_cta_p"], s["q"])}'''
     svc = {'@type': 'Service', '@id': absu(here) + '#service', 'name': c['name'], 'serviceType': c['name'], 'description': c['desc'],

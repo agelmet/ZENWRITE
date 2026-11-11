@@ -43,7 +43,7 @@
   });
 
   /* reveals */
-  var targets = $$('[data-rv],[data-fx],.kicker,.ct,.pr-c');
+  var targets = $$('[data-rv],[data-fx],.kicker,.ct,.pr-c,.draw');
   if (RM || !('IntersectionObserver' in W)) targets.forEach(function (e) { e.classList.add('in', 'fx-in'); });
   else {
     var io = new IntersectionObserver(function (es) {
@@ -56,7 +56,7 @@
   /* pause ambient motion off screen */
   if ('IntersectionObserver' in W) {
     var po = new IntersectionObserver(function (es) { es.forEach(function (en) { en.target.classList.toggle('off', !en.isIntersecting); }); });
-    $$('.hero,.sh,.tick,.tl,.ct').forEach(function (s) { po.observe(s); });
+    $$('.hero,.sh,.tick,.tl,.ct,section').forEach(function (s) { po.observe(s); });
   }
 
   /* header: menus */
