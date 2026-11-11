@@ -1,0 +1,16 @@
+{
+ "source": {
+  "kind": "file",
+  "ref": "assets/img/zenwrite-logo.svg"
+ },
+ "source_md5": "6ef1e1728986fe21a6bf193ce6cf9298",
+ "version": "4b6cdecc",
+ "tile": "#F6F2EA",
+ "crop": null,
+ "header": [
+  "inline",
+  "index.html",
+  "f284089b84fc80479736035f58eb0edc"
+ ],
+ "made": "2026-11-11"
+}
