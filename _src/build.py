@@ -64,6 +64,11 @@ ICONS = {
  'nib': 'M12 21l-5-8 2-9h6l2 9z M12 21v-7 M10 4h4',
  'lens': 'M10.5 17a6.5 6.5 0 1 0 0-13a6.5 6.5 0 0 0 0 13z M15.5 15.5L21 21 M8 9h5 M8 12h4',
  'compass': 'M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18z M15.5 8.5l-2 5-5 2 2-5z',
+ 'table': 'M3 4h18v16H3z M3 9h18 M3 14h18 M9 4v16 M15 4v16',
+ 'clip': 'M8 3h8v3H8z M7 4.5H5v17h14v-17h-2 M8 11l1.5 1.5L12 10 M14 11h3 M8 16l1.5 1.5L12 15 M14 16h3',
+ 'sem': 'M3 4h6v4H3z M15 4h6v4h-6z M9 16h6v4H9z M9 6h6 M6 8l5 8 M18 8l-5 8',
+ 'scatter': 'M4 3v17h17 M7 15l1 1 M7 16l1-1 M10 11l1 1 M10 12l1-1 M13 13l1 1 M13 14l1-1 M15 8l1 1 M15 9l1-1 M18 6l1 1 M18 7l1-1 M6 18L20 5',
+ 'rcode': 'M8 7l-5 5 5 5 M16 7l5 5-5 5 M10.5 17V8h2.5a2.2 2.2 0 0 1 0 4.4h-2.5 M12.5 12.4l2 4.6',
 }
 def icon(k, cls='ic'):
     paths = ''.join(f'<path d="{p.strip() if p.strip().startswith("M") else "M"+p.strip()}" pathLength="1"/>' for p in re.split(r'\s(?=M)', ICONS[k]))
@@ -76,7 +81,9 @@ def scaled(art, speed, base=0.0):
     for i, it in enumerate(art.items):
         art.items[i] = it[:4] + (it[4] * speed,) + it[5:]
     return art.render(base)
-HERO_SCENE = scaled(SK.hero_scene(), .42, .3)
+HERO_SCENE = scaled(SK.hero_scene(), .34, .1)
+_CH, CHART_PTS = SK.hero_chart()
+CHART_ART = scaled(_CH, .5, .1)
 HERO_DOOD = scaled(SK.hero_doodles(), .45, 2.2)
 CTA_PLANE = SK.cta_plane().render()
 
@@ -251,13 +258,13 @@ def home(L):
                       f'<span class="sv-t"><span class="sv-h">{e(s[L]["name"])}</span><span class="sv-p">{e(s[L]["short"])}</span></span>'
                       f'<span class="sv-a" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></svg></span></a></li>')
         rows.append(f'<div class="sv-g"><p class="sv-gh" data-rv>{e(gt[L])}</p><ul class="sv-l">{"".join(rr)}</ul></div>')
-    JI = ['compass', 'doc', 'book', 'lens', 'chart', 'nib', 'screen']
+    JI = ['compass', 'clip', 'table', 'chart', 'scatter', 'nib', 'screen']
     jr = ''.join(f'<li class="jr-s" data-rv><span class="jr-d" aria-hidden="true"></span><div class="jr-c sk">{ricon(JI[i], i, "ri jr-i")}<span class="jr-n">{i+1:02d}</span><h3>{e(a)}</h3><p>{e(b)}</p></div></li>' for i, (a, b) in enumerate(t['jr']))
     pr = ''.join(f'<li class="pr-c sk ch" data-rv style="--i:{i}"><span class="pr-n">{i+1}</span><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['pr']))
     ph = ''.join(f'<li data-rv style="--i:{i}"><h3>{e(a)}</h3><p>{e(b)}</p></li>' for i, (a, b) in enumerate(t['ph']))
     facts = ''.join(f'<div><dt>{e(a)}</dt><dd>{(f"<a href=mailto:{EMAIL}>{EMAIL}</a>" if b == "email" else e(b))}</dd></div>' for a, b in t['facts'])
     fields = ''.join(f'<span>{e(f.strip())}</span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#zw"/></svg>' for f in t['fields'].split('·'))
-    qtypes = ''.join(f'<label class="qc"><input type="radio" name="qt" value="{e(s[L]["name"])}" data-k="{s["q"]}"{" checked" if i==1 else ""}><span>{e(s[L]["name"])}</span></label>' for i, s in enumerate(S))
+    qtypes = ''.join(f'<label class="qc"><input type="radio" name="qt" value="{e(s[L]["name"])}" data-k="{s["q"]}"{" checked" if s["key"]=="statistiki" else ""}><span>{e(s[L]["name"])}</span></label>' for i, s in enumerate(S))
     opt = lambda arr: ''.join(f'<option>{e(x)}</option>' for x in arr)
     langs = ''.join(f'<label class="qc qc-s"><input type="radio" name="ql" value="{e(x)}"{" checked" if i==(0 if L=="el" else 1) else ""}><span>{e(x)}</span></label>' for i, x in enumerate(t['q_langs']))
     msg = 'data-l=\'' + e(json.dumps({k: t[k] for k in ('q_hello', 'q_intro', 'q_bye', 'q_level', 'q_field', 'q_len', 'q_words', 'q_pages', 'q_dead', 'q_langl', 'q_style', 'q_notes', 'q_copied', 'q_copy')}, ensure_ascii=False)) + '\''
@@ -268,18 +275,16 @@ def home(L):
 <p class="eyebrow">{e(t["eyebrow"])}</p>
 <h1 class="h1">{e(t["h1a"])} <em>{e(t["h1b"])}</em></h1>
 <p class="hero-p">{e(t["hero_p"])}</p>
-<div class="hero-cta"><a class="btn" href="#prosfora">{e(t["cta_quote"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="lnk" href="#ypiresies">{e(t["cta_services"])}</a></div>
+<div class="hero-cta"><a class="btn" href="#prosfora">{e(t["cta_quote"])}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="lnk" href="#analyseis">{e(t["cta_an"])}</a></div>
 <ul class="pills">{chips(t["pills"])}</ul></div>
-<div class="hero-v" aria-hidden="true"><div class="hv-p hv-en" data-d="8"><svg viewBox="0 0 100 100" class="hv-e"><defs><mask id="hm"><path d="{ENSO_G}" pathLength="1" class="hv-g"/></mask></defs><use href="#eo" mask="url(#hm)" class="hv-ink"/>{"".join(f'<path d="{s}" mask="url(#hm)" class="hv-st"/>' for s in ENSO_ST)}</svg></div>
-<div class="hv-p" data-d="16"><svg viewBox="0 0 640 560" class="scene">{HERO_SCENE}</svg></div>
-<div class="hv-p" data-d="30"><svg viewBox="0 0 640 560" class="scene dood">{HERO_DOOD}</svg><span class="note">{e(t["note"])}</span></div>
-</div>
+{chart(t)}
 </div><a class="scue" href="#glance" aria-label="{e(t["about_k"])}"><span></span></a></section>
 
-<section class="glance" id="glance">{dd("star","g1",1)}{dd("swirl","g2",2)}<div class="wrap gl-in"><p class="kicker" data-rv>{e(t["about_k"])}</p><p class="gl-p" data-rv>{e(t["about_p"])}</p></div></section>
+<section class="glance" id="glance">{dd("star","g1",1)}{dd("swirl","g2",2)}<div class="wrap gl-in"><svg class="gl-art draw" viewBox="0 0 640 560" aria-hidden="true">{HERO_SCENE}</svg><div><p class="kicker" data-rv>{e(t["about_k"])}</p><p class="gl-p" data-rv>{e(t["about_p"])}</p></div></div></section>
 
 <div class="tick" aria-hidden="true"><div class="tick-t"><div class="tick-i">{fields}{fields}</div></div></div>
 
+{analyses(L, here)}
 <section class="svc" id="ypiresies"><div class="wrap svc-in"><div class="svc-h"><p class="kicker" data-rv>{e(t["svc_k"])}</p><h2 data-fx="mask">{e(t["svc_h"])}</h2><p class="lead" data-rv>{e(t["svc_p"])}</p>{dd("arrow","s1",3)}{dd("bell","s2",4)}</div>
 <div class="svc-b">{"".join(rows)}</div></div></section>
 
@@ -315,6 +320,33 @@ def home(L):
 {cta(L, here, t["ct_k"], t["ct_h"], t["ct_p"])}'''
     ld = {'@context': 'https://schema.org', '@graph': [org(L), WEBSITE, webpage(L, here, t['title'], t['desc']), faq_ld(t['faq'])]}
     return here, alt, t['title'], t['desc'], body, ld
+
+AN_LINK = {'bars': 'statistiki', 'bell': 'statistiki', 'box': 'spss', 'grid': 'spss', 'scatter': 'statistiki', 'reg': 'spss',
+           'logit': 'spss', 'factor': 'erotimatologio', 'alpha': 'erotimatologio', 'sem': 'sem', 'med': 'sem', 'ts': 'rpy'}
+def analyses(L, here):
+    t = T[L]; byk = {s['key']: s for s in S}
+    li = ''.join(f'<li data-rv style="--i:{i % 4}"><a class="an-c sk" href="{rel(here, spath(byk[AN_LINK[k]], L))}"><svg class="an-m draw" viewBox="0 0 120 80" aria-hidden="true">{SK.mini(k, 900 + i * 13).render()}</svg><h3>{e(n)}</h3><p>{e(dsc)}</p></a></li>' for i, (n, dsc, k) in enumerate(t['an']))
+    return f'''<section class="an" id="analyseis">{dd("bell","n1",21)}{dd("asterisk","n2",22)}<div class="wrap"><div class="sec-h c"><p class="kicker" data-rv>{e(t["an_k"])}</p><h2 data-fx="light">{e(t["an_h"])}</h2><p class="lead" data-rv>{e(t["an_p"])}</p></div><ul class="an-l">{li}</ul></div></section>'''
+
+def chart(t):
+    import statistics as st
+    P = CHART_PTS; n = len(P)
+    xs = [p[0] for p in P]; ys = [p[1] for p in P]; mx_ = st.mean(xs); my_ = st.mean(ys)
+    sxx = sum((x - mx_) ** 2 for x in xs); sxy = sum((x - mx_) * (y - my_) for x, y in P)
+    bb = sxy / sxx; aa = my_ - bb * mx_
+    line = f'M{SK.mx(.3):.0f} {SK.my(aa + bb * .3):.0f}L{SK.mx(9.7):.0f} {SK.my(aa + bb * 9.7):.0f}'
+    dots = ''.join(f'<circle class="pt" cx="{SK.mx(x):.0f}" cy="{SK.my(y):.0f}" r="{5 + (i * 7 % 4) * .5:.1f}" style="--d:{.9 + i * .025:.2f}s"/>' for i, (x, y) in enumerate(P))
+    labs = ''.join(f'<text class="ax" x="{SK.mx(k):.0f}" y="634">{k}</text><text class="ax" x="{SK.PX0 - 22:.0f}" y="{SK.my(k) + 5:.0f}">{k}</text>' for k in (2, 4, 6, 8, 10))
+    data = json.dumps(P, separators=(',', ':'))
+    return f'''<div class="chart" id="chart" data-pts="{data}" aria-hidden="true"><svg viewBox="0 0 800 700" class="ch-svg">
+<path id="rgBand" class="rg-band" d=""/>{CHART_ART}{labs}<text class="axt" x="{SK.PX1 - 4}" y="668" text-anchor="end">{e(t["ax_x"])}</text><text class="axt" x="0" y="0" transform="translate(40 {SK.PY1 + 4}) rotate(-90)" text-anchor="end">{e(t["ax_y"])}</text>
+{dots}<path id="rgLine" class="rg-line" d="{line}" pathLength="1"/>
+<g id="rgNew" class="rg-new"><path class="rg-x" d=""/><circle r="8"/><circle class="rg-h" r="16"/><text x="14" y="-14">{e(t["ch_obs"])}</text></g>
+<text id="rgNote" class="rg-note" x="640" y="170">r = 0,7</text></svg>
+<div class="coef sk"><p class="cf-k">{e(t["ch_card"])}</p><table><tr><th></th><th>B</th><th>β</th><th>t</th><th>p</th></tr>
+<tr><td>{"Σταθερά" if t["lang"] == "el" else "Constant"}</td><td id="cfA">–</td><td></td><td></td><td></td></tr>
+<tr><td>X</td><td id="cfB">–</td><td id="cfR">–</td><td id="cfT">–</td><td id="cfP">–</td></tr></table><p class="cf-r">R² = <b id="cfR2">–</b> · n = <b id="cfN">{n}</b></p></div>
+<p class="ch-tip">{e(t["ch_tip"])}</p></div>'''
 
 def cta(L, here, k, h, p, q=''):
     t = T[L]; hp = rel(here, homepath(L))

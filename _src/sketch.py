@@ -78,7 +78,9 @@ def from_d(d, seed, scale=1, dx=0, dy=0, step=4.0, amp=.5):
         n = max(3, int(L * scale / step))
         pts = []
         for i in range(n + 1):
-            p = sub.point(sub.ilength(L * i / n) if i not in (0, n) else (0 if i == 0 else 1))
+            try: tt = sub.ilength(L * i / n) if i not in (0, n) else (0 if i == 0 else 1)
+            except Exception: tt = i / n
+            p = sub.point(tt)
             pts.append((p.real * scale + dx + rnd.uniform(-amp, amp), p.imag * scale + dy + rnd.uniform(-amp, amp)))
         out += smooth(pts, closed=sub.isclosed())
     return out
@@ -290,3 +292,118 @@ def rule_line(seed, w=1200):
     rnd = _r(seed)
     pts = [(x, 12 + math.sin(x / 70 + seed) * 4 + rnd.uniform(-1.2, 1.2)) for x in range(0, w + 1, 40)]
     A = Art(); A.stroke(smooth(pts), w=1.6, dt=0); return A
+
+# ------------------------------------------------------------------ statistics hero chart (viewBox 0 0 800 700)
+PX0, PX1, PY0, PY1 = 112, 732, 604, 136          # plot box: left, right, bottom, top
+
+def hero_data(n=44, seed=7):
+    rnd = _r(seed); pts = []
+    for i in range(n):
+        x = rnd.uniform(.6, 9.4)
+        y = 1.3 + .68 * x + rnd.gauss(0, 1.25)
+        pts.append((round(x, 2), round(min(9.7, max(.3, y)), 2)))
+    return pts
+
+def mx(x): return PX0 + (PX1 - PX0) * x / 10
+def my(y): return PY0 - (PY0 - PY1) * y / 10
+
+def hero_chart():
+    pts = hero_data()
+    A = Art()
+    # axes with arrow heads
+    A.stroke(lines([((PX0, PY0 + 6), (PX0, PY1 - 30)), ((PX0 - 6, PY0), (PX1 + 30, PY0))], 400, .8), w=2.2, dt=.18)
+    A.stroke(lines([((PX0, PY1 - 30), (PX0 - 8, PY1 - 16)), ((PX0, PY1 - 30), (PX0 + 8, PY1 - 16)),
+                    ((PX1 + 30, PY0), (PX1 + 16, PY0 - 8)), ((PX1 + 30, PY0), (PX1 + 16, PY0 + 8))], 401, .3), w=2, dt=.1, second=False)
+    ticks = [((mx(k), PY0 - 5), (mx(k), PY0 + 7)) for k in range(1, 11)] + [((PX0 - 7, my(k)), (PX0 + 5, my(k))) for k in range(1, 11)]
+    A.stroke(lines(ticks, 402, .3), cls='g', w=1.2, dt=.1, second=False)
+    # marginal histogram of X (top)
+    bins = [0] * 10
+    for x, y in pts: bins[min(9, int(x))] += 1
+    m = max(bins)
+    for i, b in enumerate(bins):
+        h = 62 * b / m
+        x0, x1 = mx(i) + 5, mx(i + 1) - 5
+        A.fill(blob([(x0 + 3, 112 - h + 3), (x1 + 3, 112 - h + 3), (x1 + 3, 114), (x0 + 3, 114)], 410 + i, .6), 'rgba(176,64,44,.22)')
+        A.stroke(poly([(x0, 112 - h), (x1, 112 - h), (x1, 112), (x0, 112)], 420 + i, .5), w=1.2, dt=.035, second=False)
+    # marginal density of Y (right) — sideways bell
+    bell = [(PX1 + 44 + 46 * math.exp(-((y - 5.2) / 1.9) ** 2), my(y)) for y in [k / 2 for k in range(0, 21)]]
+    A.stroke(lines([((PX1 + 44, my(0)), (PX1 + 44, my(10)))], 430, .4), cls='g', w=1.1, dt=.05, second=False)
+    A.stroke(curve(bell, 431, .5), cls='v', w=1.8, dt=.2)
+    return A, pts
+
+def mini(kind, seed=0):
+    """small analysis sketches, viewBox 0 0 120 80"""
+    A = Art(); rnd = _r(seed)
+    base = lines([((8, 72), (114, 72))], seed + 1, .4)
+    if kind == 'bars':
+        A.stroke(base, w=1.4)
+        for i, h in enumerate([22, 40, 30, 54, 34]):
+            x = 16 + i * 19
+            A.fill(blob([(x + 3, 72 - h + 3), (x + 14, 72 - h + 3), (x + 14, 72), (x + 3, 72)], seed + 10 + i, .6), VERML if i % 2 else MOSSL)
+            A.stroke(poly([(x, 72 - h), (x + 12, 72 - h), (x + 12, 72), (x, 72)], seed + 20 + i, .5), w=1.3, second=False, dt=.05)
+    elif kind == 'bell':
+        A.stroke(base, w=1.4)
+        for i, h in enumerate([6, 14, 28, 44, 50, 42, 26, 13, 5]):
+            x = 14 + i * 10.5
+            A.stroke(poly([(x, 72 - h), (x + 9, 72 - h), (x + 9, 72), (x, 72)], seed + 30 + i, .3), cls='g', w=1, second=False, dt=.02)
+        A.stroke(curve([(10 + k, 72 - 54 * math.exp(-((k - 50) / 19) ** 2)) for k in range(0, 101, 8)], seed + 2, .4), cls='v', w=2)
+    elif kind == 'box':
+        A.stroke(base, w=1.4)
+        for i, (lo, q1, md, q3, hi) in enumerate([(14, 26, 34, 44, 58), (22, 36, 46, 54, 66), (10, 20, 26, 34, 44)]):
+            x = 22 + i * 32
+            A.stroke(lines([((x + 9, 72 - lo), (x + 9, 72 - q1)), ((x + 9, 72 - q3), (x + 9, 72 - hi)), ((x + 3, 72 - hi), (x + 15, 72 - hi)), ((x + 3, 72 - lo), (x + 15, 72 - lo))], seed + 40 + i, .3), w=1.1, second=False, dt=.04)
+            A.fill(blob([(x + 2, 72 - q3 + 2), (x + 20, 72 - q3 + 2), (x + 20, 72 - q1 + 2), (x + 2, 72 - q1 + 2)], seed + 45 + i, .5), VERML if i == 1 else MOSSL)
+            A.stroke(poly([(x, 72 - q3), (x + 18, 72 - q3), (x + 18, 72 - q1), (x, 72 - q1)], seed + 50 + i, .4), w=1.3, second=False, dt=.04)
+            A.stroke(lines([((x, 72 - md), (x + 18, 72 - md))], seed + 55 + i, .2), cls='v', w=2, second=False, dt=.03)
+    elif kind == 'grid':
+        for r in range(3):
+            for c in range(4):
+                x, y = 14 + c * 24, 10 + r * 20
+                if (r + c) % 3 == 0: A.fill(blob([(x + 2, y + 2), (x + 22, y + 2), (x + 22, y + 18), (x + 2, y + 18)], seed + 60 + r * 4 + c, .5), VERML)
+        segs = [((12, 10 + r * 20), (110, 10 + r * 20)) for r in range(4)] + [((12 + c * 24, 8), (12 + c * 24, 72)) for c in range(5)]
+        A.stroke(lines(segs, seed + 3, .6), w=1.2, second=False)
+        A.stroke(curve([(70, 34), (76, 26), (82, 34), (88, 26)], seed + 4, .3), cls='v', w=1.6, second=False)
+    elif kind in ('scatter', 'reg'):
+        A.stroke(lines([((10, 74), (10, 6)), ((8, 72), (114, 72))], seed + 1, .4), w=1.4)
+        for i in range(16):
+            x = rnd.uniform(16, 106); y = 66 - (x - 10) * .5 + rnd.gauss(0, 7)
+            A.fill(ellipse(x, max(10, min(68, y)), 2.6, 2.6, seed + 70 + i, .1, 1.0), INK)
+        if kind == 'reg':
+            A.stroke(lines([((14, 64), (110, 16))], seed + 5, .8), cls='v', w=2.2)
+        else:
+            A.stroke(ellipse(60, 42, 50, 18, seed + 6, .04), cls='g', w=1.1, second=False)
+    elif kind == 'logit':
+        A.stroke(lines([((10, 74), (10, 6)), ((8, 72), (114, 72))], seed + 1, .4), w=1.4)
+        A.stroke(lines([((12, 14), (112, 14))], seed + 7, .3), cls='g', w=1, second=False)
+        A.stroke(curve([(x, 72 - 58 / (1 + math.exp(-(x - 62) / 9))) for x in range(12, 113, 8)], seed + 8, .3), cls='v', w=2.2)
+    elif kind == 'factor':
+        for i in range(2):
+            A.fill(ellipse(28 + i * 64, 18, 16, 11, seed + 80 + i, .03, 1.0), MOSSL)
+            A.stroke(ellipse(28 + i * 64, 18, 16, 11, seed + 82 + i), w=1.4)
+        for j in range(6):
+            x = 12 + j * 19
+            A.stroke(poly([(x, 58), (x + 14, 58), (x + 14, 72), (x, 72)], seed + 90 + j, .4), w=1.2, second=False, dt=.03)
+            A.stroke(lines([((28 + (j // 3) * 64, 29), (x + 7, 57))], seed + 100 + j, .3), cls='v', w=1.1, second=False, dt=.03)
+    elif kind == 'alpha':
+        A.stroke(curve([(18, 66), (40, 24), (60, 14), (80, 24), (102, 66)], seed + 9, .4), cls='g', w=1.4, second=False)
+        A.stroke(lines([((60, 66), (86, 30))], seed + 10, .4), cls='v', w=2.4)
+        A.fill(ellipse(60, 66, 5, 5, seed + 11, .1, 1.0), INK)
+        A.stroke(lines([((18, 66), (24, 60)), ((102, 66), (96, 60)), ((60, 14), (60, 21))], seed + 12, .2), w=1.2, second=False)
+    elif kind == 'sem':
+        for (x, y) in [(10, 10), (10, 52), (84, 31)]:
+            A.fill(blob([(x + 3, y + 3), (x + 30, y + 3), (x + 30, y + 21), (x + 3, y + 21)], seed + int(x + y), .5), VERML if x > 50 else MOSSL)
+            A.stroke(poly([(x, y), (x + 27, y), (x + 27, y + 18), (x, y + 18)], seed + 120 + int(x + y), .5), w=1.3)
+        A.stroke(lines([((38, 20), (82, 38)), ((38, 60), (82, 44)), ((82, 38), (75, 32)), ((82, 38), (74, 41)), ((82, 44), (74, 41)), ((82, 44), (76, 50))], seed + 13, .3), w=1.4, second=False)
+        A.stroke(curve([(6, 26), (0, 40), (6, 54)], seed + 14, .2), cls='v', w=1.3, second=False)
+    elif kind == 'med':
+        for (x, y, c) in [(10, 52, MOSSL), (46, 8, VERML), (84, 52, MOSSL)]:
+            A.fill(ellipse(x + 13, y + 10, 14, 10, seed + 130 + x, .03, 1.0), c)
+            A.stroke(ellipse(x + 13, y + 10, 14, 10, seed + 135 + x), w=1.3)
+        A.stroke(lines([((26, 54), (50, 26)), ((72, 26), (92, 52)), ((28, 62), (84, 62)), ((84, 62), (76, 57)), ((84, 62), (76, 67)), ((92, 52), (84, 50)), ((92, 52), (91, 44)), ((50, 26), (49, 34)), ((50, 26), (57, 29))], seed + 15, .3), w=1.3, second=False)
+    elif kind == 'ts':
+        A.stroke(base, w=1.4)
+        pts = [(10 + i * 6, 50 - i * .9 - 12 * math.sin(i / 2.2) + rnd.uniform(-2, 2)) for i in range(18)]
+        A.stroke(curve(pts, seed + 16, .3), w=1.8)
+        A.stroke(lines([((10, 52), (112, 32))], seed + 17, .4), cls='v', w=1.6, second=False)
+        A.stroke(curve([(100, 36), (106, 30), (112, 34)], seed + 18, .2) , cls='g', w=1.2, second=False)
+    return A
