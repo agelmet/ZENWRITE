@@ -1,0 +1,27 @@
+/* form of interest (14 Nov 2026) — sends through advonmedia.com/api/form (Resend) */
+.qct{margin-top:6px;padding-top:24px;border-top:1.4px dashed rgba(27,29,33,.25)}
+.qct .q2{margin-bottom:18px}
+.qi input[type=email],.qi input[type=tel]{width:100%;min-height:52px;padding:13px 16px;border:1.5px solid rgba(27,29,33,.55);border-radius:14px 6px 12px 5px/6px 12px 5px 14px;background:var(--card);font:400 16px/1.4 var(--sans);color:var(--ink);transition:border-color .3s,box-shadow .3s;-webkit-appearance:none;appearance:none}
+.qi input[type=email]:focus,.qi input[type=tel]:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 4px rgba(27,29,33,.07)}
+.qi.bad input,.qi.bad textarea{border-color:var(--verm);box-shadow:0 0 0 4px rgba(176,64,44,.10)}
+.qi .fe{display:block;margin-top:7px;font-size:13.5px;color:var(--verm)}
+.qok{display:flex;gap:12px;align-items:flex-start;margin-top:18px;font-size:15px;line-height:1.5;color:var(--ink);cursor:pointer}
+.qok input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--ink);cursor:pointer}
+.qok a{color:var(--verm);text-decoration:underline;text-underline-offset:3px}
+.qok.bad span{color:var(--verm)}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
+button#qsend{border:0;cursor:pointer;font:inherit}
+button#qsend[disabled]{opacity:.6;cursor:progress}
+.q-err{margin-top:14px;font-size:14.5px;color:var(--verm)}
+.q-err[hidden]{display:none}
+.lt-done{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:center;padding:34px 40px 70px;background:var(--card);border-radius:inherit;opacity:0;transform:translateY(10px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none}
+.letter.sent .lt-done{opacity:1;transform:none;pointer-events:auto}
+.lt-done svg{width:58px;height:58px;stroke:var(--verm);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.lt-done svg path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .9s .25s var(--ease)}
+.letter.sent .lt-done svg path{stroke-dashoffset:0}
+.lt-done h3{font:400 clamp(26px,2.4vw,32px)/1.15 var(--serif);margin:18px 0 10px}
+.lt-done p{font-size:16px;line-height:1.6;color:var(--mute);margin:0}
+.lt-done strong{color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.qt.sent .lt-a,.qt.sent .lt-n{display:none}
+.qt.sent .qf{opacity:.55;pointer-events:none;transition:opacity .4s}
+@media (prefers-reduced-motion:reduce){.lt-done,.lt-done svg path{transition:none}}

@@ -1,7 +1,7 @@
 # ZenWrite — all copy, Greek + English. Edit here, then: python3 build.py
 DOMAIN = 'https://zenwrite.gr'
 BRAND = 'ZenWrite'
-EMAIL = 'info@zenwrite.gr'      # TO CONFIRM with the client
+EMAIL = 'kalaitzisdimitris81@gmail.com'   # the client's own inbox (14 Nov 2026) — swap for info@zenwrite.gr once that mailbox exists
 PHONE = ''                      # e.g. '6900000000' — empty = hidden everywhere
 VIBER = ''                      # same number if he uses Viber
 WHATSAPP = ''
